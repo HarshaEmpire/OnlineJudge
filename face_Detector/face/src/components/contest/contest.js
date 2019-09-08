@@ -19,14 +19,17 @@ class Contest extends Component{
 		}
 	}
 	componentDidMount=()=>{
+		//get data from database
 		const problems=[{id:1,name:"cows problem"},{id:2,name:"rat race"},{id:3,name:"fastest car"},{id:4,name:"road runner"}];
 		this.setState({questions:problems});
 		this.setState({name:"code milenga"})
 	}
 	onSubmitContest=(text)=>{
+		//submit
 		console.log(text);
 	}
 	openProblem=(id)=>{
+		//get question from database
 		const prob={id:1,name:"cat race",question:"You are given a weighted tree consisting of n vertices. Recall that a tree is a connected graph without cycles.\n Vertices ui and vi are connected by an edge with weight wi.You are given m queries. The i-th query is given as an integer qi. In this query you need to calculate the number of pairs \n of vertices (u,v) (u<v) such that the maximum weight of an edge on a simple path between u and v doesn't exceed qi.",
     	input:"The first line of the input contains two integers n and m (1≤n,m≤2⋅105) — the number of vertices in the tree and the number of queries.Each of the next n−1 lines describes an edge of the tree. \n Edge i is denoted by three integers ui, vi and wi — the labels of vertices it connects (1≤ui,vi≤n, ui≠vi) and the weight of the edge (1≤wi≤2⋅105). \nIt is guaranteed that the given edges form a tree."}		
     	this.setState({question:prob});

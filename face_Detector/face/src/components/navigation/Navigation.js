@@ -36,7 +36,7 @@ class Navigation extends Component{
 		this.props.OnrouteChange("home");
 	}
 	OnrouteChanger4=()=>{
-		this.props.OnrouteChange("problemSet");
+		this.props.problemSet();
 	}
 
 	deleteAccount=()=>{

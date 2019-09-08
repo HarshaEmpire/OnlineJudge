@@ -1,5 +1,5 @@
 import {CHANGE_PASSWORD,CHANGE_EMAIL,CHANGE_MARK,CHANGE_RNAME,CHANGE_RPASSWORD,CHANGE_REMAIL,CHANGE_RMARK,clearStates,registerClear,CHANGE_PROBLEM
-,CHANGE_ROUTE,CHANGE_USER,CHANGE_ISSIGNEDIN,CLEAR_HOME,ON_CLICK_CHANGE,CHANGE_SEARCH} from "./constants"
+,CHANGE_ROUTE,CHANGE_USER,CHANGE_ISSIGNEDIN,CLEAR_HOME,ON_CLICK_CHANGE,CHANGE_SEARCH,CHANGE_CONTEST,LOAD_KEY} from "./constants"
 
 
 export const onPasswordChange = (text) => ({
@@ -54,6 +54,11 @@ export const isSignedChange = (val) => ({
 	payload:val
 
 });
+export const LoadKey = (val) => ({
+	type: LOAD_KEY,
+	payload:val
+
+});
 export const clearHome = () => ({
 	type:CLEAR_HOME
 })
@@ -65,7 +70,10 @@ export const searchChange = (data) =>({
 	type: CHANGE_SEARCH,
 	payload:data
 })
-
+export const contestChange =(val)=>({
+	type: CHANGE_CONTEST,
+	payload:val
+})
 
 export const clickChange = (text) => ({
 	type:ON_CLICK_CHANGE,

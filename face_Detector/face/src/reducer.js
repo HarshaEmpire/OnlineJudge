@@ -1,5 +1,5 @@
 import {CHANGE_PASSWORD,CHANGE_EMAIL,CHANGE_MARK,CHANGE_RNAME,CHANGE_RPASSWORD,CHANGE_REMAIL,CHANGE_RMARK,clearStates,registerClear,CHANGE_INPUT,CHANGE_IMG_URL,CHANGE_BOX
-,CHANGE_ROUTE,CHANGE_USER,CHANGE_ISSIGNEDIN,CLEAR_HOME,ON_CLICK_CHANGE,CHANGE_PROBLEM,CHANGE_SEARCH} from "./constants"
+,CHANGE_ROUTE,CHANGE_USER,CHANGE_ISSIGNEDIN,CLEAR_HOME,ON_CLICK_CHANGE,CHANGE_PROBLEM,CHANGE_SEARCH,CHANGE_CONTEST,LOAD_KEY} from "./constants"
 
 const initialSignupState ={
 	email:"",
@@ -47,18 +47,19 @@ export const register = (state=initialRegisterState,action={}) => {
 
 const initialHomeState = {
 	  problem:{},
-      route:'contest',
+      route:'home',
       contestId:"1",
+      contests:[],
+      keys:"1",
       user : {
         id:"",
         name:"",
         email:"",
-        solved:new Set([1]),
+        userSolved:new Set([1]),
         wrong:new Set([2]),
         wrong_arr:[{id:2,name:"rat race"}]
       },
-      allProblems:{},
-      issignedin:true
+      issignedin:true,
     }
 
 export const home = (state=initialHomeState,action={}) => {
@@ -71,10 +72,12 @@ export const home = (state=initialHomeState,action={}) => {
 			return Object.assign({},state,{user:action.payload});
 		case CHANGE_ISSIGNEDIN:
 			return Object.assign({},state,{issignedin:action.payload});
-		case CHANGE_SEARCH:
-			return Object.assign({},state,{allProblems:action.payload});
 		case CLEAR_HOME:
 			return Object.assign({},initialHomeState);
+		case CHANGE_CONTEST:
+			return Object.assign({},state,{contests:action.payload});
+		case LOAD_KEY:
+			return Object.assign({},state,{keys:action.payload});
 		default:
 			return state;
 	}
