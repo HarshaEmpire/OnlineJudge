@@ -1,13 +1,16 @@
 import React from  'react';
-import {onRPasswordChange,onREmailChange,onRMarkChange,clearRegister,onRNameChange} from "../../action";
+import {onRPasswordChange,onREmailChange,onRMarkChange,clearRegister,onRNameChange,onRHandleChange,onRInstituteChange} from "../../action";
 import {connect}  from 'react-redux'; 
+import GoogleLogin from 'react-google-login';
 
 const mapStateToProps = state =>{
 	return {
 		password:state.register.password,
 		email:state.register.email,
 		mark:state.register.mark,
-		name:state.register.name
+		name:state.register.name,
+		institute:state.register.institute,
+		handle:state.register.handle
 	}
 }
 
@@ -17,6 +20,8 @@ const mapDispatchToProps = (dispatch) => {
 	onEmailsChange: (event) => dispatch(onREmailChange(event.target.value)),
 	onMarksChange: (val) => dispatch(onRMarkChange(val)),
 	onNamesChange: (event) => dispatch(onRNameChange(event.target.value)),
+	onHandlesChange: (event)=>dispatch(onRHandleChange(event.target.value)),
+	onInstitutesChange: (event)=>dispatch(onRInstituteChange(event.target.value)),
 	onClear:() => dispatch(clearRegister())
 	}
 }
@@ -24,23 +29,95 @@ const mapDispatchToProps = (dispatch) => {
 
 
 class Register extends React.Component{
+	constructor(props){
+		super(props);
+		this.state={
+			info:{},
+			route:"register"
+		}
+	}
+	onGoogleSubmit=()=>{
+	  fetch("http://localhost:3001/signingoogle",{
+				method: 'post',
+				headers :{'Content-Type':'application/json'},
+				body :JSON.stringify({
+					email:this.state.info.email,
+					googleId:this.state.info.googleId,
+					name:this.state.info.name,
+					handle:this.props.handle,
+					institute:this.props.institute
+				})
+			}).then(res => res.json())
+			.then(user => {
+				console.log(user)
+				if(user.u_id){
+					this.props.onClear();
+					this.props.loadUser(user);
+					this.props.OnrouteChange("home");
+					
+					}
+				else{
+					console.log("error occured")
+				}
+			}).catch(err=> console.log(err))
+	}
+
+	responseGoogleSucc = (response) => {
+		//changes made
+	  console.log(response.profileObj);
+	  const {googleId,email,name,imageUrl}=response.profileObj;
+	  fetch('http://localhost:3001/checkUser',{
+	  	method:'post',
+		headers :{'Content-Type':'application/json'},
+		body :JSON.stringify({
+			email:email,
+			googleId:googleId,
+		})
+	  })
+	  .then(res=>res.json())
+	  .then(data=>{
+	  	if(data.length!=0){
+	  		this.props.onClear();
+	  		this.props.loadUser(data[0]);
+	  		console.log(data)
+	  		this.props.OnrouteChange("home");
+	  	}
+	  	else{
+		  this.setState({info:{googleId:googleId,
+				email:email,
+				name:name,
+				imageUrl:imageUrl}})
+		  this.setState({route:"mini"})	  		
+	  	}
+	  })
+
+
+
+	}
+
+	responseGoogleFail = (response) => {
+	  console.log(response.profileObj);
+	}
 
 	onSubmit =()=>{
-		const {email,password,name,onClear,onMarksChange}=this.props;
+		const {email,password,name,onClear,onMarksChange,institute,handle}=this.props;
+
 		var pass= new RegExp("^(?=.*[a-z])(?=.*[0-9])(?=.*[A-Z])(?=.{8,})")
 		if(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email)){
 				if(pass.test(password)){
-					fetch("http://localhost:3000/register",{
+					fetch("http://localhost:3001/register",{
 						method: 'post',
 						headers :{'Content-Type':'application/json'},
 						body :JSON.stringify({
 							email:email,
 							name:name,
-							password:password
+							password:password,
+							handle:handle,
+							institute:institute
 						})
 					}).then(res => res.json())
 					.then(user => {
-						if(user.id){
+						if(user.u_id){
 							onClear();
 							this.props.loadUser(user);
 							this.props.OnrouteChange('home');
@@ -61,8 +138,10 @@ class Register extends React.Component{
 		
 	}
 	render(){
-	const {onNamesChange,onEmailsChange,onPasswordsChange,mark}=this.props;
+	const {onNamesChange,onEmailsChange,onPasswordsChange,onHandlesChange,onInstitutesChange,mark}=this.props;
+	if(this.state.route==='register'){
 	return(
+
 		<article style={{marginTop:"200px"}} className="br3 shadow ba dark-gray b--black-10 mv4 w-100 w-50-m w-25-l mw5 center">
 			<main className="pa4 black-80">
 			  <div className="measure">
@@ -88,6 +167,16 @@ class Register extends React.Component{
 			        <input className="b pa2 input-reset ba bg-transparent hover-bg-black hover-white w-100" type="password" name="password"  id="password" 
 			        onChange={onPasswordsChange} required/>
 			      </div>
+			      <div className="mt3">
+			        <label className="db fw6 lh-copy f6" htmlFor="HANDLE" >{"HANDLE"}</label>
+			        <input className="pa2 input-reset ba bg-transparent hover-bg-black hover-white w-100" type="text" name="name"  id="name" 
+			        onChange={onHandlesChange} required/>
+			      </div>
+			      <div className="mt3">
+			        <label className="db fw6 lh-copy f6" htmlFor="INSTITUTE" >{"INSTITUTE"}</label>
+			        <input className="pa2 input-reset ba bg-transparent hover-bg-black hover-white w-100" type="text" name="name"  id="name" 
+			        onChange={onInstitutesChange} required/>
+			      </div>
 			    </fieldset>
 			    <div className="">
 			      <input 
@@ -96,11 +185,55 @@ class Register extends React.Component{
 			      value="Register" 
 			      onClick={this.onSubmit}
 			      />
+			    <div className="lh-copy mt3 center">
+			      <p  onClick={()=>this.props.OnrouteChange("signin")} className="f6 link dim black db pointer">signin</p>
+			    </div>
+				<div className="signInButton">
+				  <GoogleLogin
+				    clientId="605819162339-jn8m2skktvou0dhnt7jss9gtic3lpadv.apps.googleusercontent.com"
+				    buttonText="Register With Google"
+				    theme="dark"
+				    onSuccess={this.responseGoogleSucc}
+				    onFailure={this.responseGoogleFail}
+				    cookiePolicy={'single_host_origin'}
+				  />
+				  </div>
 			    </div>
 			  </div>
 			</main>
 		</article>
 		);
+		}
+		else{
+		return(
+		<article style={{marginTop:"200px"}} className="br3 shadow ba dark-gray b--black-10 mv4 w-100 w-50-m w-25-l mw5 center">
+			<main className="pa4 black-80">
+			  <div className="measure">
+			    <fieldset id="sign_up" className="ba b--transparent ph0 mh0">
+			      <legend className="f1 fw6 ph0 mh0">Register</legend>
+			      <div className="mt3">
+			        <label className="db fw6 lh-copy f6" htmlFor="HANDLE" >{"HANDLE"}</label>
+			        <input className="pa2 input-reset ba bg-transparent hover-bg-black hover-white w-100" type="text" name="name"  id="name" 
+			        onChange={onHandlesChange} required/>
+			      </div>
+			      <div className="mt3">
+			        <label className="db fw6 lh-copy f6" htmlFor="INSTITUTE" >{"INSTITUTE"}</label>
+			        <input className="pa2 input-reset ba bg-transparent hover-bg-black hover-white w-100" type="text" name="name"  id="name" 
+			        onChange={onInstitutesChange} required/>
+			      </div>
+			    </fieldset>
+			    <div className="">
+			      <input 
+			      className="b ph3 pv2 input-reset ba b--black bg-transparent grow pointer f6 dib pointer" 
+			      type="submit" 
+			      value="Register" 
+			      onClick={this.onGoogleSubmit}
+			      />
+			    </div>
+			  </div>
+			</main>
+		</article>
+		);}
 	}
 }
 export default connect(mapStateToProps,mapDispatchToProps)(Register);

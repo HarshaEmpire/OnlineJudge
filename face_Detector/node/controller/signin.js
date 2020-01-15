@@ -6,11 +6,11 @@ const signinHandler = (req,res,db,bcrypt) =>{
 	if(!email || !password){
 		return res.status(400).json("incorrect password or email");
 	}
-	db.select('email','hash').from("login")
-	.where({email:email})
+	db.select('email','passwo').from('pass')
+	.where("email","=",email)
 	.then(data => {
-		const isValid=bcrypt.compareSync(password,data[0].hash);
-		if(isValid){
+		const isValid=((data[0].passwo).localeCompare(password))//bcrypt.compareSync(password,data[0].hash);
+		if(isValid===0){
 			return db.select("*").from("users")
 			.where({email:email})
 			.then(user => {

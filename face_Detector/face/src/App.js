@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import './App.css';
 import {connect}  from 'react-redux'; 
-import {onInputChange,onImgUrlChange,onBoxChange,onRouteChange,onUserChange,isSignedChange,clearHome,problemChange,searchChange,contestChange,LoadKey} from "./action.js";
+import {onInputChange,onImgUrlChange,onBoxChange,onRouteChange,onUserChange,isSignedChange,clearHome,problemChange,searchChange,contestChange,LoadKeyP,LoadKeyC,LoadWrong,LoadRight,OnContestIdChange} from "./action.js";
 import Navigation from "./components/navigation/Navigation"
 import Logo from "./components/logo/logo"
 import Rank from "./components/rank/rank"
@@ -16,7 +16,16 @@ import Editor from "./components/editor/editor"
 import Problems from "./components/problems/problems"
 import WrongProblem from "./components/wrongProblem/wrongProblem"
 import Contest from "./components/contest/contest"
-import UpcomingC from "./components/upcomingC/upcomingC"
+import OngoingC from "./components/ongoingC/ongoingC"
+import Timer from "./components/timer/timer"
+import ContestSet from "./components/contestSet/contestSet"
+import Leaderboard from "./components/leaderboard/leaderboard"
+import LineChart from "react-linechart"
+import Upload from "./components/upload/upload"
+import MakeContest from "./components/makeContest/makeContest"
+import "../node_modules/react-linechart/dist/styles.css"
+import CommentBox from "./components/commentBox/commentBox"
+import { withCookies } from 'react-cookie';
 // hackerearth 
 
 
@@ -24,6 +33,8 @@ import UpcomingC from "./components/upcomingC/upcomingC"
 
 
 const mapStateToProps = state =>{
+
+
   return {
     route:state.home.route,
     user:state.home.user,
@@ -31,7 +42,11 @@ const mapStateToProps = state =>{
     contestId:state.home.contestId,
     contests:state.home.contests,
     question:state.home.problem,
-    keys:state.home.keys
+    keyP:state.home.keyP,
+    keyC:state.home.keyC,
+    wrong_arr:state.home.wrong_arr,
+    wrong:state.home.wrong,
+    userSolved:state.home.userSolved
   }
 }
 
@@ -43,49 +58,210 @@ const mapDispatchToProps = (dispatch) => {
   onClean: () => dispatch(clearHome()),
   onProblemChange:(data)=>dispatch(problemChange(data)),
   onContestChange:(val)=>dispatch(contestChange(val)),
-  loadKey:(val)=>dispatch(LoadKey(val))
+  loadKeyP:(val)=>dispatch(LoadKeyP(val)),
+  loadKeyC:(val)=>dispatch(LoadKeyC(val)),
+  loadWrong:(val)=>dispatch(LoadWrong(val)),
+  loadRight:(val)=>dispatch(LoadRight(val)),
+  onContestIdChange:(val)=>dispatch(OnContestIdChange(val))
   }
 }
-
 
 
 
  
 class App extends Component {
-onSubmit=(text)=>{
-  console.log(text);
+  constructor(props){
+    super(props);
+    this.state={
+      width:0,
+      height:0,
+      data:[],
+      status:"",
+      mark:0
+    }
 
-    fetch("http://localhost:3000/kur",{
-      method: 'post',
-      headers :{'Content-Type':'application/json'},
-      body :JSON.stringify({
-        data:text,
-      })
-    }).then(res => res.json())
-    .then(data=> console.log(data))
-}
+    
+    this.updateWindowDimensions=this.updateWindowDimensions.bind(this);}
+
+  
+    componentDidMount(){
+      let aa=localStorage.getItem('isLoggedIn');
+      if(aa!== null && aa.localeCompare("true")===0){
+        let user=localStorage.getItem('user');
+        // console.log("tolet",JSON.parse(user));
+        this.props.loadUser(JSON.parse(user));
+
+        // console.log("she",this.props.user);
+        this.props.isSignedsChange(true);
+        this.props.onRoutesChange('home');
+
+        this.important_fetch2(JSON.parse(user));
+      }
+      this.updateWindowDimensions();
+      window.addEventListener('resize',this.updateWindowDimensions);
+    }
+    componentWillUnmount(){
+      window.removeEventListener('resize',this.updateWindowDimensions);
+    }
+    updateWindowDimensions(){
+      this.setState({width:window.innerWidth,height:window.innerHeight})
+    }
+    onSubmit=(object)=>{
+
+          console.log("tear",object)
+            fetch("http://localhost:3001/checkProblem",{
+              method: 'post',
+              headers :{'Content-Type':'application/json'},
+              async:false,
+              body :JSON.stringify({
+                data:object.text,
+                lang:object.lang,
+                p_id:this.props.question.p_id,
+                c_id:this.props.question.c_id,
+                u_id:this.props.user.u_id,
+                c_name:this.props.question.c_name
+                // questionId:this.props.Problem.id,
+                // contestId:this.props.contest.id;
+
+              })
+            }).then(res => res.json())
+            .then(data=> {
+              this.setState({status:data})
+              this.setState({mark:1})})
+            .catch(err => console.log(err));
+    }
+
+    important_fetch2=(user)=>{
+        fetch(`http://localhost:3001/getWrong?u_id=${user.u_id}`)
+        .then(res => res.json())
+        .then((data)=>{
+          this.props.loadWrong(data.prob);
+        })
+        .catch(err => {alert("try again")});  
+
+        fetch("http://localhost:3001/getContest")
+        .then(res=>res.json())
+        .then((data)=>{
+          this.props.onContestChange(data.con);
+        })
+        .catch(err=>{this.props.onContestChange([]);
+        })
+
+        fetch(`http://localhost:3001/getRight?u_id=${user.u_id}`)
+        .then(res=>res.json())
+        .then((data)=>{
+          let kk=new Set();
+          for(let i=0;i<data.length;i++){
+              let bb={'p_id':data[i].p_id,
+                      'c_id':data[i].c_id};
+              kk.add(JSON.stringify(bb));
+          }
+          this.props.loadRight(kk);
+        })
+        .catch(err=>{alert("please reload")})
+
+        fetch(`http://localhost:3001/getChart?u_id=${user.u_id}`)
+        .then(res=>res.json())
+        .then((data)=>{
+        let dd=[{x:0,y:0}]
+          for(var i in data){
+              dd.push({x:parseInt(parseInt(i)/(1000*60*60*24)),y:data[i]})
+          }
+              const datas = [
+                {                 
+                    color: "blue", 
+                    points: dd
+                }
+            ];
+          this.setState({data:datas});
+
+        })
+        .catch(err=>{alert("please reload")})
+
+        localStorage.setItem('isLoggedIn','true');
+        localStorage.setItem('user',JSON.stringify(user));
+    }
 
 
 
-  componentDidMount=()=>{
-    //get data from database
-    const con=[{id:1,name:"challenge urself",start:"7:15",end:"9:15"},{id:2,name:"challenge 2",start:"9:00",end:"10:00"},
-              {id:3,name:"challenge 3",start:"1:00",end:"3:00"}];
-    this.props.onContestChange(con);
-  }
+
+    important_fetch=()=>{
+        fetch(`http://localhost:3001/getWrong?u_id=${this.props.user.u_id}`)
+        .then(res => res.json())
+        .then((data)=>{
+          this.props.loadWrong(data.prob);
+        })
+        .catch(err => {alert("try again")});  
+
+        fetch("http://localhost:3001/getContest")
+        .then(res=>res.json())
+        .then((data)=>{
+          this.props.onContestChange(data.con);
+        })
+        .catch(err=>{this.props.onContestChange([]);
+        })
+
+        fetch(`http://localhost:3001/getRight?u_id=${this.props.user.u_id}`)
+        .then(res=>res.json())
+        .then((data)=>{
+          let kk=new Set();
+          for(let i=0;i<data.length;i++){
+              let bb={'p_id':data[i].p_id,
+                      'c_id':data[i].c_id};
+              kk.add(JSON.stringify(bb));
+          }
+          this.props.loadRight(kk);
+        })
+        .catch(err=>{alert("please reload")})
+
+        fetch(`http://localhost:3001/getChart?u_id=${this.props.user.u_id}`)
+        .then(res=>res.json())
+        .then((data)=>{
+        let dd=[{x:0,y:0}]
+          for(var i in data){
+              dd.push({x:parseInt(parseInt(i)/(1000*60*60*24)),y:data[i]})
+          }
+              const datas = [
+                {                 
+                    color: "blue", 
+                    points: dd
+                }
+            ];
+          this.setState({data:datas});
+
+        })
+        .catch(err=>{alert("please reload")})
+
+        localStorage.setItem('isLoggedIn','true');
+        localStorage.setItem('user',JSON.stringify(this.props.user));
+
+
+
+
+
+
+
+
+    }
+    onSignin=()=>{
+
+      this.important_fetch();
+
+    }
+
 
   problemSet=()=>{
     //call the data base
-    console.log(this.props.route);
+    // console.log(this.props.route);
     var tt=this.props.keys;
-    console.log(this.props.keys);
-    const prob=[{id:1,name:"cows problem",difficulty:2100},{id:2,name:"rat race",difficulty:2100},{id:4,name:"road runner",difficulty:2100}];
+    // console.log(this.props.keys);
+    // const prob=[{id:1,name:"cows problem",difficulty:2100},{id:2,name:"rat race",difficulty:2100},{id:4,name:"road runner",difficulty:2100}];
     if(this.props.route === "problemSet"){
-      if(this.props.keys === "1" ) {
-        this.props.loadKey("2")
+      if(this.props.keyP === "1" ) {
+        this.props.loadKeyP("2")
       }
       else{
-        this.props.loadKey("1");
+        this.props.loadKeyP("1");
       }
       
     }
@@ -93,16 +269,45 @@ onSubmit=(text)=>{
 
   }
 
-openProblem=(id)=>{
-  //get data from database
-   const prob={id:1,name:"cat race",question:"You are given a weighted tree consisting of n vertices. Recall that a tree is a connected graph without cycles.\n Vertices ui and vi are connected by an edge with weight wi.You are given m queries. The i-th query is given as an integer qi. In this query you need to calculate the number of pairs \n of vertices (u,v) (u<v) such that the maximum weight of an edge on a simple path between u and v doesn't exceed qi.",
-    input:"The first line of the input contains two integers n and m (1≤n,m≤2⋅105) — the number of vertices in the tree and the number of queries.Each of the next n−1 lines describes an edge of the tree. \n Edge i is denoted by three integers ui, vi and wi — the labels of vertices it connects (1≤ui,vi≤n, ui≠vi) and the weight of the edge (1≤wi≤2⋅105). \nIt is guaranteed that the given edges form a tree."}
-  this.props.onProblemChange(prob);
-  this.props.onRoutesChange("question");
+openProblem=(id,c_id,c_name,difficulty)=>{
+
+
+    fetch(`http://localhost:3001/getProblem?id=${id}&&c_id=${c_id}&&c_name=${c_name}&&difficulty=${difficulty}`)
+    .then(res => res.json())
+    .then((data)=>{
+      this.props.onProblemChange(data.prob[0]);
+      this.props.onRoutesChange("question");
+      console.log(data);
+    })
+    .catch(err => alert("try again")); 
+
+
+
+
+}
+
+openContest=(id)=>{
+
+
+      if(this.props.keyC === "1" ) {
+        this.props.loadKeyC("2")
+      }
+      else{
+        this.props.loadKeyC("1");
+      }
+
+    this.props.onContestIdChange(id);
+    this.props.onRoutesChange("contest");
+
+  
+
+
 }
 
 onClear = () => {
   this.props.onClean();
+  localStorage.clear();
+  localStorage.setItem('isLoggedIn','false');
 }
 
 OnrouteChange = (route) => {
@@ -114,50 +319,71 @@ OnrouteChange = (route) => {
         this.props.isSignedsChange(true);
 }
 
-// onSubmitContest=(text)=>{
-//     fetch("http://localhost:3000/contest",{
-//       method: 'post',
-//       headers :{'Content-Type':'application/json'},
-//       body :JSON.stringify({
-//         data:text,
-//         questionId:this.props.Problem.id,
-//         contestId:this.props.contest.id;
 
-//       })
-//     }).then(res => res.json())
-//     .then(data=> console.log(data))
-// }
   render() {
-    
-    console.log("uuu");
+    let kk=this.state.width;
     return (
-      <div className="App">
-        <Navigation OnrouteChange={this.OnrouteChange} clearState={this.clearState} issignedin={this.props.issignedin} problemSet={this.problemSet} />
+      <div>
+        <Navigation OnrouteChange={this.OnrouteChange} clearState={this.onClear} issignedin={this.props.issignedin} problemSet={this.problemSet} important_fetch={this.important_fetch} />
         {this.props.route === 'signin'?
-            <signin OnrouteChange={this.OnrouteChange} loadUser={this.props.loadUser} />
+            <Signin OnrouteChange={this.OnrouteChange} loadUser={this.props.loadUser} onSignin={this.onSignin} />
         :this.props.route === 'home'? 
+          <div>
           <div style={{display:"flex",position:"relative"}}>
-            <div style={{width:"80"}}>
-              <Profile name={"harsh"} handle={"harshaEmpire"} rating={"1562"} email={"harsh@gmail.com"} institution={"mnnit"} styles={"red"}/>
+            <div style={{width:"78%"}}>
+              <Profile name={this.props.user.u_name} handle={this.props.user.handle} rating={this.props.user.rating} email={this.props.user.email} pic={this.props.user.pic} institution={this.props.user.institution} styles={"red"}/>
             </div>
-            <div style={{width:"20%"}}>
-              <WrongProblem problems={this.props.user.wrong_arr} openProblem={this.openProblem} />
-              <UpcomingC contests={this.props.contests} problem={this.openProblem}/>
+            <div className="pv6" style={{width:"22%"}}>
+              <div className="pv3">
+                  <WrongProblem problems={this.props.wrong_arr} openProblem={this.openProblem} userSolved={this.props.userSolved} />
+              </div>
+              <OngoingC contests={this.props.contests} />
             </div>
           </div>
+
+              <div id="Line pieo2" className="line" style={{width:0.55*kk,backgroundColor:"white",marginLeft:"15%"}}>
+                    <LineChart id="kkk" 
+                        width={0.55*kk}
+                        height={300}
+                        interpolate="linear"
+                        // options={{
+                        //   responsive: true,
+                        //   maintainAspectRatio: true,
+                        // }}
+                        data={this.state.data}
+                    />
+              </div>
+          </div>
+        :this.props.route === 'ContestSet'?
+          <ContestSet openContest={this.openContest} u_id={this.props.user.u_id} />
         :this.props.route === 'contest'?
-          <Contest contestId={this.props.contestId} />
+          <div>
+            <Contest key={this.props.keyC} contestId={this.props.contestId} userSolved={this.props.userSolved} u_id={this.props.user.u_id} routeChanger={this.props.onRoutesChange} 
+            openContest={this.openContest} />
+          </div>
         :this.props.route === 'problemSet'?
-          <Problems key={this.props.keys} userSolved={this.props.user.userSolved} />
+          <Problems key={this.props.keyP} userSolved={this.props.userSolved} id={this.props.user.u_id} handle={this.props.user.handle}/>
         :this.props.route === 'question'?
           <div>
-            <Question name={this.props.question.name} question={this.props.question.question} input={this.props.question.input} />
-            <Editor onSubmit={this.onSubmit} />
+            <Question name={this.props.question.p_name} question={this.props.question.question} input={this.props.question.input_form} output={this.props.question.output_form} input1={this.props.question.sample_ip} output1={this.props.question.sample_op} />
+            <Editor onSubmit={this.onSubmit} p_id={this.props.question.p_id} c_name={this.props.question.c_name} 
+              c_id={this.props.question.c_id} />
+             {this.state.mark===1 && <div className="ba bw1 center ma2" style={{width:"80%",fontSize:"1em"}}>{this.state.status}</div>}
+            <div className="center" style={{width:"80%"}}>
+              <CommentBox  url=""
+              pollInterval={20000} p_id={this.props.question.p_id} c_id={this.props.question.c_id} handle={this.props.user.handle} />
+            </div>
           </div>
+        :this.props.route === 'makeContest'?
+            <div className="App1">
+              <div className="Card1">
+                <MakeContest OnrouteChange={this.OnrouteChange} />
+              </div>
+            </div>          
         :<Register OnrouteChange={this.OnrouteChange} loadUser={this.props.loadUser} />}
       </div>
     );
   }
 }
 
-export default connect(mapStateToProps,mapDispatchToProps)(App);
+export default withCookies(connect(mapStateToProps,mapDispatchToProps)(App));

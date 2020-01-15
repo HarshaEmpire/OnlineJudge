@@ -4,6 +4,9 @@ import Scroll from "../scroll/scroll";
 import "./contest.css"
 import Question from "../question/question"
 import Editor from "../editor/editor"
+import Timer from "../timer/timer"
+import Leaderboard from "../leaderboard/leaderboard"
+import moment from 'moment'
 
 
 class Contest extends Component{
@@ -11,80 +14,192 @@ class Contest extends Component{
 		super(props);
 		this.state={
 			route:"contest",
-			id:this.props.contestId,
-			name:"",
+			contest:{c_id:4,c_name:"hello try",date_start:moment().add(2,'hours'),date_con:moment().add(3,'hours')},
 			questions:[],
 			question:{},
-			userSolved:new Set()
+			currentTime:moment(),
+			status:"",
+			mark:0
+
 		}
 	}
 	componentDidMount=()=>{
-		//get data from database
-		const problems=[{id:1,name:"cows problem"},{id:2,name:"rat race"},{id:3,name:"fastest car"},{id:4,name:"road runner"}];
-		this.setState({questions:problems});
-		this.setState({name:"code milenga"})
+		fetch(`http://localhost:3001/getContestInfo?id=${this.props.contestId}`)
+		.then(res => res.json())
+		.then((data)=>{
+			this.setState({contest:data})
+		})
+
+		 fetch(`http://localhost:3001/getContestProblem?id=${this.props.contestId}`)
+	    .then(res => res.json())
+	    .then((data)=>{
+	      this.setState({questions:data})
+	    })
+	    .catch(err => alert("try again")); 
+
+
+		fetch("http://localhost:3001/getTime")
+	    .then(res => res.json())
+	    .then(data=>{
+	    	this.setState({currentTime:data});
+	    })
+
+		// const problems=[{id:1,name:"cows problem"},{id:2,name:"rat race"},{id:3,name:"fastest car"},{id:4,name:"road runner"}];
+		// this.setState({questions:problems});
+		// this.setState({name:"code milenga"})
 	}
-	onSubmitContest=(text)=>{
-		//submit
-		console.log(text);
+	onSubmitContest=(object)=>{
+			let end=moment(this.state.contest.date_con)
+			let present=moment(this.state.currentTime)
+			let mark=0;
+			if(end.isBefore(present)===true)
+				mark=1;
+			console.log("tututut")
+		    fetch("http://localhost:3001/checkContestProblem",{
+		      method: 'post',
+		      headers :{'Content-Type':'application/json'},
+		      async:false,
+		      body :JSON.stringify({
+		        data:object.text,
+		        lang:object.lang,
+		        p_id:this.state.question.p_id,
+		        c_id:this.props.contestId,
+		        u_id:this.props.u_id,
+		        c_name:this.state.question.c_name,
+		        mark:mark,
+		        score:500
+		        // questionId:this.props.Problem.id,
+		        // contestId:this.props.contest.id;
+
+		      })
+		    }).then(res => res.json())
+		    .then(data=> {
+		    	console.log("ppppp");
+		    	this.setState({status:data})
+		    	this.setState({mark:1})})
+		    .catch(err => console.log(err));
 	}
-	openProblem=(id)=>{
-		//get question from database
-		const prob={id:1,name:"cat race",question:"You are given a weighted tree consisting of n vertices. Recall that a tree is a connected graph without cycles.\n Vertices ui and vi are connected by an edge with weight wi.You are given m queries. The i-th query is given as an integer qi. In this query you need to calculate the number of pairs \n of vertices (u,v) (u<v) such that the maximum weight of an edge on a simple path between u and v doesn't exceed qi.",
-    	input:"The first line of the input contains two integers n and m (1≤n,m≤2⋅105) — the number of vertices in the tree and the number of queries.Each of the next n−1 lines describes an edge of the tree. \n Edge i is denoted by three integers ui, vi and wi — the labels of vertices it connects (1≤ui,vi≤n, ui≠vi) and the weight of the edge (1≤wi≤2⋅105). \nIt is guaranteed that the given edges form a tree."}		
-    	this.setState({question:prob});
-		this.setState({route:"contestQ"});
+
+	openProblem=(id,c_id,c_name,difficulty)=>{
+
+
+	    fetch(`http://localhost:3001/getProblem?id=${id}&&c_id=${c_id}&&c_name=${c_name}&&difficulty=${difficulty}`)
+	    .then(res => res.json())
+	    .then((data)=>{
+	      this.setState({question:data.prob[0]});
+	      this.setState({route:"problem"});
+	    })
+	    .catch(err => alert("try again")); 
 	}
+
 	routeChange=(text)=>{
 		this.setState({route:text})
 	}
 
 	render(){
+		let end=moment(this.state.contest.date_con)
+		let present=moment(this.state.currentTime)
+		let start=moment(this.state.contest.date_start)
 		if(this.state.route==='contest'){
 			const comp=[]
 			for(let i=0;i<this.state.questions.length;i++){
-				if(this.state.userSolved.has(this.state.questions[i].id))
-					comp.push(<Contest_q key={this.state.questions[i].id} id={this.state.questions[i].id} name={this.state.questions[i].name} isAccepted={1} problemC={this.openProblem} />)
+				if((this.props.userSolved.has(JSON.stringify({'p_id':this.state.questions[i].p_id,'c_id':this.state.questions[i].c_id}))))
+					comp.push(<Contest_q key={i} id={this.state.questions[i].p_id} c_id={this.state.questions[i].c_id}
+					 c_name={this.state.questions[i].c_name} difficulty={this.state.questions[i].difficulty} 
+					 name={this.state.questions[i].p_name} isAccepted={1} problemC={this.openProblem} />)
 				else
-					comp.push(<Contest_q key={this.state.questions[i].id} id={this.state.questions[i].id} name={this.state.questions[i].name} isAccepted={0} problemC={this.openProblem} />)
+					comp.push(<Contest_q key={i} id={this.state.questions[i].p_id} c_id={this.state.questions[i].c_id}
+					 c_name={this.state.questions[i].c_name} difficulty={this.state.questions[i].difficulty} 
+					 name={this.state.questions[i].p_name} isAccepted={0} problemC={this.openProblem} />)
 
 			}
 			return(
+
 				<div >
 
-					<legend className="f1 fw6 ph0 mh0 center">{this.state.name}</legend>
+					<legend className="f1 fw6 ph0 mh0 center">{this.state.contest.c_name}</legend>
 					<div className="navbars">
 						<a onClick={()=>this.routeChange("contest")} >problems</a>
 						<a onClick={()=>this.routeChange("leaderboard")}>leaderboard</a>
 					</div>
-					<table style={{width:"80%",paddingTop:"40px"}}>
-						<tbody>
-							<tr className="new bin " >
-								<td className="ba bw1 center" style={{width:"10%",paddingBottom: "15px"}}>ID</td>
-								<td  className="ba bw1 pointer" style={{width:"85%"}}>PROBLEM</td>
-								<td className="ba bw1" style={{width:"5%"}} >AC</td>
-							</tr>
-								{comp}
-						</tbody>
-					</table>
+					{present.isBefore(end)===true?
+					<div className="pv3" >
+						<div style={{display:"flex"}}>
+						<table  style={{width:"60%"}}>
+							<tbody>
+								<tr  className="new">
+									<td  className="ba bw1 center" style={{width:"10%",paddingBottom: "15px"}}>ID</td>
+									<td  className="ba bw1 pointer" style={{width:"85%"}}>PROBLEM</td>
+									<td className="ba bw1" style={{width:"5%"}} >AC</td>
+								</tr>
+									{comp}
+							</tbody>
+						</table>
+						<Timer style={{width:"40%"}} key={moment()} time={end.diff(present)} routeChanger={this.props.routeChanger}/>
+						</div>
+					</div>
+					:
+					<div className="pv3" >
+						<table  style={{width:"100%"}}>
+							<tbody>
+								<tr  className="new">
+									<td  className="ba bw1 center" style={{width:"10%",paddingBottom: "15px"}}>ID</td>
+									<td  className="ba bw1 pointer" style={{width:"85%"}}>PROBLEM</td>
+									<td className="ba bw1" style={{width:"5%"}} >AC</td>
+								</tr>
+									{comp}
+							</tbody>
+						</table>
+					</div>}
 				</div>
 
 			);
 		}
-		else{
+		else if(this.state.route==="problem"){
+
 		    return(
 		      <div>
-			  <legend className="f1 fw6 ph0 mh0 center">{this.state.name}</legend>
+			  <legend className="f1 fw6 ph0 mh0 center">{this.state.contest.c_name}</legend>
      		  <div className="navbars">
 					<a onClick={()=>this.routeChange("contest")} >problems</a>
 		     		<a onClick={()=>this.routeChange("leaderboard")}>leaderboard</a>
 		      </div>
+		      {present.isAfter(end)===true?
 	          <div>
-	            <Question name={this.state.question.name} question={this.state.question.question} input={this.state.question.input} />
-	            <Editor onSubmit={this.onSubmitContest} />
-	          </div>
+				<Question name={this.state.question.p_name} question={this.state.question.question} input={this.state.question.input_form} output={this.state.question
+				.output_form} input1={this.state.question.sample_ip} output1={this.state.question.sample_op} />
+	            <Editor onSubmit={this.onSubmitContest} p_id={this.state.question.p_id} c_name={this.state.question.c_name} 
+	              c_id={this.state.question.c_id} />
+	            {this.state.mark===1 && <div className="ba bw1 center ma2" style={{width:"80%",fontSize:"1em"}}>{this.state.status}</div>}
+		       </div>
+	          :
+	          	<div>
+	          	<div style={{display:"flex"}} >
+	            	<Question name={this.state.question.p_name} question={this.state.question.question} input={this.state.question.input_form} output={this.state.question
+	            	.output_form} input1={this.state.question.sample_ip} output1={this.state.question.sample_op} />
+	            	<div>
+	            	<Timer time={end.diff(present)} routeChanger={this.props.routeChanger}/>
+	            	</div>
+	            </div>
+	            <Editor onSubmit={this.onSubmitContest} p_id={this.state.question.p_id} c_name={this.state.question.c_name} 
+	              c_id={this.state.question.c_id} />
+	            {this.state.mark===1 && <div className="ba bw1 center ma2" style={{width:"80%",fontSize:"1em"}}>{this.state.status}</div>}
+	            </div>
+	           }	          
 	          </div>
           	);
+		}
+		else{
+			return(
+			<div>
+			  <legend className="f1 fw6 ph0 mh0 center">{this.state.contest.c_name}</legend>
+     		  <div className="navbars">
+					<a onClick={()=>this.routeChange("contest")} >problems</a>
+		     		<a onClick={()=>this.routeChange("leaderboard")}>leaderboard</a>
+		      </div>
+			<Leaderboard contestId={this.state.contest.c_id} />
+			</div>
+			)
 		}
 	}
 }

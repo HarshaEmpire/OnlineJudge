@@ -5,48 +5,111 @@ import "./problems.css"
 import Question from "../question/question"
 import Editor from "../editor/editor"
 import SearchBox from "../searchBox/searchBox"
+import CommentBox from "../commentBox/commentBox"
+
 
 class Problems extends Component{
 	constructor(props){
 		super(props);
 		this.state={
-			problems:"",
+			problems:{},
 			route:"problemSet",
 			problem:{},
 			userSolved:this.props.userSolved,
+			status:"",
+			mark:0
 		}
 	}
-	onSubmit=(text)=>{
-		console.log(text);
+	onSubmit=(object)=>{
+
+		    fetch("http://localhost:3001/checkProblem",{
+		      method: 'post',
+		      headers :{'Content-Type':'application/json'},
+		      async:false,
+		      body :JSON.stringify({
+		        data:object.text,
+		        lang:object.lang,
+		        p_id:this.state.problem.p_id,
+		        c_id:this.state.problem.c_id,
+		        u_id:this.props.id,
+		        c_name:this.state.problem.c_name
+		        // questionId:this.props.Problem.id,
+		        // contestId:this.props.contest.id;
+
+		      })
+		    }).then(res => res.json())
+		    .then(data=> {
+		    	console.log("errr",data);
+		    	this.setState({status:data});
+		    	this.setState({mark:1});
+		    })
+		    .catch(err => console.log(err));
+
+
+
 	}
+
   componentDidMount=()=>{
-    //get data from database
-    const con=[{id:1,name:"cows problem",difficulty:2100},{id:2,name:"rat race",difficulty:2100},{id:4,name:"road runner",difficulty:2100}];
-    this.setState({problems:con});
+  	    fetch(`http://localhost:3001/getAProblems`)
+	    .then(res => res.json())
+	    .then((data)=>{
+	      this.setState({problems:data.prob});
+	    })
+	    .catch(err => alert("try again")); 
+
+	    
+		    fetch(`http://localhost:3001/getRight?u_id=${this.props.id}`)
+		    .then(res=>res.json())
+		    .then((data)=>{
+		      let kk=new Set();
+		      for(let i=0;i<data.length;i++){
+		          kk.add(data[i].p_id);
+		      }
+		      this.setState({userSolved:kk})
+		    })
+		    .catch(err=>{alert("please reload")})
+
+
   }
-	onSearch=(event)=>{
-	  var str=(event.target.value).split(",");
-	  //get data from database
-	  console.log(str);
-	  const prob=[{id:1,name:"cows problem",difficulty:2100},{id:2,name:"rat race",difficulty:2100}];
-	  this.setState({problems:prob});
-	  this.setState({search:1});
+  	// onRun=(event)=>{
+  	// 	var tt=document.getElementById("run").value;
+  	// 	console.log(tt);
+  	// 	fetch('http://localhost:3001/getAnswer?no=$')
+  	// 	this.setState()
+  	// }
+
+
+	onSearch=(params)=>{
+	  var tt=params;
+	  fetch(`http://localhost:3001/getSearch?tags=${params}`)
+	  .then(res=> res.json())
+	  .then((data)=>{
+	  	this.setState({problems:data.prob});
+	  })
+	  .catch(err => alert("try again"));
+
+	  	  
 	}
-	openProblem=(id)=>{
-		const prob={id:1,name:"cat race",question:"You are given a weighted tree consisting of n vertices. Recall that a tree is a connected graph without cycles.\n Vertices ui and vi are connected by an edge with weight wi.You are given m queries. The i-th query is given as an integer qi. In this query you need to calculate the number of pairs \n of vertices (u,v) (u<v) such that the maximum weight of an edge on a simple path between u and v doesn't exceed qi.",
-    	input:"The first line of the input contains two integers n and m (1≤n,m≤2⋅105) — the number of vertices in the tree and the number of queries.Each of the next n−1 lines describes an edge of the tree. \n Edge i is denoted by three integers ui, vi and wi — the labels of vertices it connects (1≤ui,vi≤n, ui≠vi) and the weight of the edge (1≤wi≤2⋅105). \nIt is guaranteed that the given edges form a tree."}		
-    	this.setState({problem:prob});
-		this.setState({route:"problem"});
+	openProblem=(id,c_id,c_name,difficulty)=>{
+	    fetch(`http://localhost:3001/getProblem?id=${id}&&c_id=${c_id}&&c_name=${c_name}&&difficulty=${difficulty}`)
+	    .then(res => res.json())
+	    .then((data)=>{
+	      console.log("here we go again",data);
+	      this.setState({problem:data.prob[0]});
+	      this.setState({route:"problems"});
+	    })
+	    .catch(err => alert("try again")); 
+    	
 	}
 	render(){
-
+		console.log(this.state.userSolved)
 		if(this.state.route==="problemSet"){
 			const comp=[]
 			for(let i=0;i<this.state.problems.length;i++){
-				if(this.state.userSolved.has(this.state.problems[i].id))
-					comp.push(<Card key={this.state.problems[i].id} id={this.state.problems[i].id} name={this.state.problems[i].name} isAccepted={1} difficulty={this.state.problems[i].difficulty} problem={this.openProblem} />)
+				if(this.state.userSolved.has(this.state.problems[i].p_id))
+					comp.push(<Card key={i} id={this.state.problems[i].p_id} c_id={this.state.problems[i].c_id} c_name={this.state.problems[i].c_name} name={this.state.problems[i].p_name} isAccepted={1} difficulty={this.state.problems[i].difficulty} problem={this.openProblem}  />)
 				else
-					comp.push(<Card key={this.state.problems[i].id} id={this.state.problems[i].id} name={this.state.problems[i].name} isAccepted={0} difficulty={this.state.problems[i].difficulty} problem={this.openProblem} />)
+					comp.push(<Card key={i} id={this.state.problems[i].p_id} c_id={this.state.problems[i].c_id} c_name={this.state.problems[i].c_name} name={this.state.problems[i].p_name} isAccepted={0} difficulty={this.state.problems[i].difficulty} problem={this.openProblem} />)
 
 			}
 			return(
@@ -56,7 +119,7 @@ class Problems extends Component{
 					<Scroll style={{width:"90%"}}>
 					<table  style={{width:"100%"}}>
 						<tbody>
-							<tr className="new bin " >
+							<tr className="new " >
 								<td className="ba bw1 center" style={{width:"10%",paddingBottom: "15px"}}>ID</td>
 								<td  className="ba bw1 pointer" style={{width:"75%"}}>PROBLEM</td>
 								<td className="ba bw1 " style={{width:"10%",whiteSpace:"pre-line"}}>DIFFICULTY</td>
@@ -73,8 +136,15 @@ class Problems extends Component{
 		else{
 			return(
 	          <div>
-	            <Question name={this.state.problem.name} question={this.state.problem.question} input={this.state.problem.input} />
-	            <Editor onSubmit={this.onSubmit} />
+	            <Question name={this.state.problem.p_name} question={this.state.problem.question} input={this.state.problem.input_form} output={this.state.problem.output_form} input1={this.state.problem.sample_ip} output1={this.state.problem.sample_op} />
+	            <Editor onSubmit={this.onSubmit} p_id={this.state.problem.p_id} c_name={this.state.problem.c_name} 
+	            c_id={this.state.problem.c_id} />
+	            {this.state.mark===1 && <div className="ba bw1 center ma2" style={{width:"80%",fontSize:"1em"}}>{this.state.status}</div>}
+	            
+	             <div className="center" style={{width:"80%"}}>
+	            <CommentBox  url=""
+	          	pollInterval={20000} p_id={this.state.problem.p_id} c_id={this.state.problem.c_id} handle={this.props.handle} />
+	            </div>
 	          </div>
 	        );
 		}

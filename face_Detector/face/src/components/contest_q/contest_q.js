@@ -2,11 +2,11 @@ import React, { Component } from 'react'
 import "./contest_q.css"
 
 const Contest_q=(props)=>{
-	const {id,name,isAccepted,problemC}=props;
+	const {id,name,isAccepted,problemC,c_id,c_name,difficulty}=props;
 	return(
 		<tr className="new">
 			<td className="ba bw1 center" style={{width:"10%"}}>{id}</td>
-			<td  className="ba bw1 pointer" style={{width:"85%"}} onClick={()=>problemC(id)}>
+			<td  className="ba bw1 pointer" style={{width:"85%"}} onClick={()=>problemC(id,c_id,c_name,difficulty)}>
 			{name}
 			</td>
 			{isAccepted===1?

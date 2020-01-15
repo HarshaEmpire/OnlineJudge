@@ -23,7 +23,6 @@ class Navigation extends Component{
 	}
 	
 	clearStates=()=>{
-		this.setState({isClicked:false});
 		this.props.clearState();
 	}
 	OnrouteChanger1=()=>{
@@ -33,51 +32,60 @@ class Navigation extends Component{
 		this.props.OnrouteChange("register");
 	}
 	OnrouteChanger3=()=>{
+		this.props.important_fetch();
 		this.props.OnrouteChange("home");
 	}
 	OnrouteChanger4=()=>{
 		this.props.problemSet();
 	}
-
-	deleteAccount=()=>{
-
-		const {email}=this.props;
-		fetch("http://localhost:3000/delete",{
-			method: 'post',
-			headers :{'Content-Type':'application/json'},
-			body :JSON.stringify({
-				email:email
-			})
-		}).then(res => res.json())
-		.then(user => {
-			if(user.id){
-				this.clearStates();
-				this.OnrouteChanger1();
-				}
-			else{
-				alert("some error occured!!!!")
-			}
-		}).catch(err => alert("some problem with server!!!!"))
+	OnrouteChanger5=()=>{
+		this.props.OnrouteChange("ContestSet");
 	}
+	OnrouteChanger6=()=>{
+		this.props.OnrouteChange("makeContest");
+	}
+	// deleteAccount=()=>{
+
+	// 	const {email}=this.props;
+	// 	fetch("http://localhost:3000/delete",{
+	// 		method: 'post',
+	// 		headers :{'Content-Type':'application/json'},
+	// 		body :JSON.stringify({
+	// 			email:email
+	// 		})
+	// 	}).then(res => res.json())
+	// 	.then(user => {
+	// 		if(user.id){
+	// 			this.clearStates();
+	// 			this.OnrouteChanger1();
+	// 			}
+	// 		else{
+	// 			alert("some error occured!!!!")
+	// 		}
+	// 	}).catch(err => alert("some problem with server!!!!"))
+	// }
 	render(){
 		if(this.props.issignedin === true){
 		return(
 			<div className="navbar">
 			<div className="dropdown ">
-				<button className="dropbtn">Dropdown <i className="fa fa-caret-down"></i>
+				<button className="dropbtn">≡<i className="fa fa-caret-down"></i>
 	    		</button>
 				<div className="dropdown-content">
-					<a onClick={this.OnrouteChanger3.bind(this)}>
+					<a className="pointer" onClick={this.OnrouteChanger3.bind(this)}>
 						{"Profile"}
 					</a>
-					<a onClick={this.OnrouteChanger4.bind(this)}>
+					<a className="pointer" onClick={this.OnrouteChanger4.bind(this)}>
 						{"Problem Set"}
 					</a>
-					<a onClick={this.OnrouteChanger1.bind(this) , this.clearStates.bind(this)}>
-						{"Sign Out"}
+					<a className="pointer" onClick={this.OnrouteChanger5.bind(this)}>
+						{"Contest page"}
 					</a>
-					<a onClick={this.deleteAccount.bind(this)}>
-						{"DELETE ACCOUNT"}
+					<a className="pointer" onClick={this.OnrouteChanger6.bind(this)}>
+						{"Make Contest"}
+					</a>
+					<a className="pointer"  onClick={this.OnrouteChanger1.bind(this) , this.clearStates.bind(this)}>
+						{"Sign Out"}
 					</a>
 				</div>
 			</div>
@@ -87,14 +95,7 @@ class Navigation extends Component{
 		else{
 
 			return(
-			<nav style={{display:"flex",justifyContent:"flex-end"}} >
-			<div className="f3 dim black pointer">
-				<p onClick={this.OnrouteChanger1.bind(this)} className="b1">SIGNIN</p>
-			</div>
-			<div className="f3 dim black pointer">
-				<p onClick={this.OnrouteChanger2.bind(this)} className="b1">REGISTER</p>
-			</div>
-			</nav>
+				<div></div>
 			)
 		}
 }

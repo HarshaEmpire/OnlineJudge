@@ -1,14 +1,15 @@
 
 
 const handleRegister = (req,res,db,bcrypt)=>{
-	const {email,name,password}=req.body;
-	if(!email || !name || !password){
+	const {email,name,password,handle,institute}=req.body;
+	if(!email || !name || !password || !handle || !institute){
 		return res.status(400).json("incorrect password or email");
 	}
-	const hash=bcrypt.hashSync(password);
+		db.select("*").from('users').where('email','=',email).then((data)=>{
+		if(data.length===0){
 		db.transaction(trx => {
-			db("login").transacting(trx).insert({
-				hash:hash,
+			db("pass").transacting(trx).insert({
+				passwo:password,
 				email:email
 			}).
 			returning('email').
@@ -17,8 +18,10 @@ const handleRegister = (req,res,db,bcrypt)=>{
 				.returning("*")
 				.insert({
 				email:loginemail[0],
-				name:name,
-				joined:new Date()
+				u_name:name,
+				joined_date:new Date(),
+				handle:handle,
+				institution:institute
 				})
 				.then(rest => {
 				res.json(rest[0]);
@@ -28,6 +31,11 @@ const handleRegister = (req,res,db,bcrypt)=>{
 			.catch(trx.rollback);
 		})
 		.catch(err => res.status(400).json("error"));
+		}
+		else{
+			res.json("email exist");
+		}
+	}).catch(err=>console.log(err))
 		
 	}
 	module.exports = {

@@ -6,13 +6,15 @@
     "@babel/polyfill": "^7.4.4",
     "bcrypt-nodejs": "0.0.3",
     "body-parser": "^1.18.3",
-    "clarifai": "^2.9.0",
+    "clarifai": "^2.9.1",
+    "compile-run": "^2.3.2",
     "cors": "^2.8.5",
     "express": "^4.16.4",
     "heroku": "^7.22.1",
     "knax": "0.0.3",
     "knex": "^0.16.3",
     "nodemon": "^1.18.9",
+    "path": "^0.12.7",
     "pg": "^7.8.0"
   },
   "devDependencies": {

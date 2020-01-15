@@ -1,0 +1,1 @@
+Given an Integer N, write a program to reverse the given number. 

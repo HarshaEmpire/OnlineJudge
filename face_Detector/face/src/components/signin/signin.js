@@ -1,6 +1,8 @@
 import React from  'react';
 import {onPasswordChange,onEmailChange,onMarkChange,clearState} from "../../action";
 import {connect}  from 'react-redux'; 
+import GoogleLogin from 'react-google-login';
+import ReactDOM from 'react-dom';
 
 
 const mapStateToProps = state =>{
@@ -21,13 +23,43 @@ const mapDispatchToProps = (dispatch) => {
 }
 
 
+
 class Signin extends React.Component{
-	
+	responseGoogleSucc = (response) => {
+	  console.log(response.profileObj);
+	  const {googleId,email,name,imageUrl}=response.profileObj;
+	  fetch('http://localhost:3001/checkUser',{
+	  	method:'post',
+		headers :{'Content-Type':'application/json'},
+		body :JSON.stringify({
+			email:email,
+			googleId:googleId,
+		})
+	  })
+	  .then(res=>res.json())
+	  .then(data=>{
+	  	if(data.length!=0){
+	  		this.props.onClear();
+	  		const k1=Object.assign({},data[0],{pic:imageUrl})
+	  		this.props.loadUser(k1);
+
+	  		this.props.OnrouteChange("home");
+	  		this.props.onSignin();
+	  	}
+	  	else{
+			alert("account is not registered")  		
+	  	}
+	  })
+	}
+
+	responseGoogleFail = (response) => {
+	  console.log(response.profileObj);
+	}
 
 	onSubmit=()=>{
 			const {password,email}=this.props;
 
-		fetch("http://localhost:3000/signin",{
+		fetch("http://localhost:3001/signin",{
 			method: 'post',
 			headers :{'Content-Type':'application/json'},
 			body :JSON.stringify({
@@ -36,9 +68,10 @@ class Signin extends React.Component{
 			})
 		}).then(res => res.json())
 		.then(user => {
-			if(user.id){
+			if(user.u_id){
 				this.props.onClear();
 				this.props.loadUser(user);
+				this.props.onSignin();
 				this.props.OnrouteChange('home');
 				}
 			else{
@@ -49,17 +82,17 @@ class Signin extends React.Component{
 	}
 	render(){
 		const {onPasswordsChange,onEmailsChange,mark}=this.props;
-		const styles=this.props.styless;
-		console.log(styles);
+		console.log("kela");
 	return(
-		<article  style={{styles,marginTop:"200px"}} className=" ma80 br3 shadow ba dark-gray b--black-10 mv4 w-100 w-50-m w-25-l mw5 center"  >
+
+		<article  style={{marginTop:"200px"}} className=" ma80 br3 shadow ba dark-gray b--black-10 mv4 w-100 w-50-m w-25-l mw5 center"  >
 			<main className="pa4 black-80"  >
 			  <div className="measure">
 			    <fieldset id="sign_up" className="ba b--transparent ph0 mh0">
 			      <legend className="f1 fw6 ph0 mh0">Sign In</legend>
 			      <div className="mt3">
 			        <label className="db fw6 lh-copy f6" >Email</label>
-			        <input style={styles} className="b pa2 input-reset ba bg-transparent hover-bg-black hover-white w-100" type="email" name="email-address"  id="email-address" 
+			        <input  className="b pa2 input-reset ba bg-transparent hover-bg-black hover-white w-100" type="email" name="email-address"  id="email-address" 
 			        onChange={onEmailsChange}
 			        required />
 			      </div>
@@ -77,7 +110,7 @@ class Signin extends React.Component{
 			      value="Sign in" 
 			      />
 			    </div>
-			    <div className="lh-copy mt3">
+			    <div className="lh-copy mt3 center">
 			      <p  onClick={()=>this.props.OnrouteChange("register")} className="f6 link dim black db pointer">register</p>
 			    </div>
 			     {this.props.mark===1 && 
@@ -85,6 +118,16 @@ class Signin extends React.Component{
 			      		<div style={{marginTop:0}} className='center'>
 			      			<h5 style={{color:"red",marginTop:0}}>{"wrong username or password"}</h5>
 			      		</div>}
+			  </div>
+			<div className="signInButton">
+			  <GoogleLogin
+			    clientId="605819162339-jn8m2skktvou0dhnt7jss9gtic3lpadv.apps.googleusercontent.com"
+			    buttonText="Login with Google"
+			    theme="dark"
+			    onSuccess={this.responseGoogleSucc}
+			    onFailure={this.responseGoogleFail}
+			    cookiePolicy={'single_host_origin'}
+			  />
 			  </div>
 			</main>
 		</article>

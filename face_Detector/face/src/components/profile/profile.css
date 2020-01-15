@@ -5,21 +5,21 @@
     padding-bottom: 0;
 }
 .new {
-	display :flex;
-	position: relative;
-	font-size: 0.95em;
-	justify-content: space-between;
+    display :flex;
+    position: relative;
+    font-size: 0.95em;
+    justify-content: space-between;
 }
 @media only screen and (max-width: 1000px) {
     .new {
-        font-size: 0.8em;
+        font-size: 1em;
         padding: 0;
         justify-content: space-between;
     }
 }
 @media only screen and (max-width: 830px) {
     .new {
-        font-size: 0.7em;
+        font-size: 1em;
         padding: 0;
         justify-content: space-between;
     }
@@ -27,21 +27,21 @@
 
 @media only screen and (max-width: 700px) {
     .new {
-        font-size: 0.6em;
+        font-size: 0.9em;
         padding: 0;
         justify-content: space-between;
     }
 }
 @media only screen and (max-width: 600px) {
     .new {
-        font-size: 0.5em;
+        font-size: 0.8em;
         padding: 0;
         justify-content: space-between;
     }
 }
 @media only screen and (max-width: 550px) {
     .new {
-        font-size: 0.4em;
+        font-size: 0.6em;
         padding: 0;
         justify-content: space-between;
     }
@@ -51,6 +51,92 @@
 
 
 
+.newhand {
+    display :flex;
+    position: relative;
+    font-size: 2em;
+    justify-content: space-between;
+}
+@media only screen and (max-width: 1000px) {
+    .newhand {
+        font-size: 1.8em;
+        padding: 0;
+        justify-content: space-between;
+    }
+}
+@media only screen and (max-width: 830px) {
+    .newhand {
+        font-size: 1.7em;
+        padding: 0;
+        justify-content: space-between;
+    }
+}
+
+@media only screen and (max-width: 700px) {
+    .newhand {
+        font-size: 1.6em;
+        padding: 0;
+        justify-content: space-between;
+    }
+}
+@media only screen and (max-width: 600px) {
+    .newhand {
+        font-size: 1.5em;
+        padding: 0;
+        justify-content: space-between;
+    }
+}
+@media only screen and (max-width: 550px) {
+    .newhand {
+        font-size: 1.4em;
+        padding: 0;
+        justify-content: space-between;
+    }
+}
+
+
+.newrate {
+    display :flex;
+    position: relative;
+    font-size: 1.8em;
+    justify-content: space-between;
+}
+@media only screen and (max-width: 1000px) {
+    .newrate {
+        font-size: 1.6em;
+        padding: 0;
+        justify-content: space-between;
+    }
+}
+@media only screen and (max-width: 830px) {
+    .newrate {
+        font-size: 1.4em;
+        padding: 0;
+        justify-content: space-between;
+    }
+}
+
+@media only screen and (max-width: 700px) {
+    .newrate {
+        font-size: 1.3em;
+        padding: 0;
+        justify-content: space-between;
+    }
+}
+@media only screen and (max-width: 600px) {
+    .newrate {
+        font-size: 1.2em;
+        padding: 0;
+        justify-content: space-between;
+    }
+}
+@media only screen and (max-width: 550px) {
+    .newrate {
+        font-size: 1.1em;
+        padding: 0;
+        justify-content: space-between;
+    }
+}
 
 
 
@@ -64,16 +150,16 @@
 
 
 .zone{
-	border-radius:4px;
+    border-radius:4px;
     /*border:1px solid #bbb;*/
     transition: all 0.3s linear;
 }
 
 .blues {
-    background-color: #f3d3d3;
+    background-color: #EEEEEE;
 }
 .pro{
-	background-color: #A463F2;
+    background-color: #70dbdb;
 }
 
 .zone:hover {
@@ -81,4 +167,10 @@
     -moz-box-shadow:rgba(0,0,0,0.8) 0px 5px 15px, inset rgba(0,0,0,0.15) 0px -10px 20px;
     -o-box-shadow:rgba(0,0,0,0.8) 0px 5px 15px, inset rgba(0,0,0,0.15) 0px -10px 20px;
     box-shadow:rgba(0,0,0,0.8) 0px 5px 15px, inset rgba(0,0,0,0.15) 0px -10px 20px;
+}
+
+.responsive{
+  width: 100%;
+  max-width: 500px;
+  height: auto;
 }

@@ -5,13 +5,34 @@
   "dependencies": {
     "clarifai": "^2.9.0",
     "knex": "^0.16.3",
+    "moment": "^2.24.0",
+    "multiselect-dropdown-react": "^1.0.5",
+    "namor": "^1.1.2",
     "pg": "^7.8.0",
+    "prop-types": "^15.6.1",
     "react": "^16.7.0",
+    "react-ace": "^7.0.4",
+    "react-alert": "^5.4.0",
+    "react-alert-template-basic": "^1.0.0",
+    "react-charts": "^2.0.0-beta.4",
+    "react-cookie": "^4.0.1",
+    "react-date-and-time-picker": "^1.3.3",
+    "react-datetime": "^2.16.3",
+    "react-datetime-picker": "^2.8.0",
     "react-dom": "^16.7.0",
+    "react-file-uploader": "^1.0.0",
+    "react-google-login": "^5.0.7",
+    "react-linechart": "^1.1.12",
     "react-particles-js": "^2.4.2",
+    "react-redux": "^7.1.1",
     "react-scripts": "2.1.3",
+    "react-table": "^6.10.3",
     "react-tilt": "^0.1.4",
-    "tachyons": "^4.11.1"
+    "react-transition-group": "^2.3.1",
+    "redux": "^4.0.4",
+    "redux-logger": "^3.0.6",
+    "tachyons": "^4.11.1",
+    "window-size": "^1.1.1"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -32,7 +53,9 @@
   "main": "script.js",
   "devDependencies": {
     "babel-polyfill": "^6.26.0",
-    "babel-preset-es2015": "^6.24.1"
+    "babel-preset-es2015": "^6.24.1",
+    "remarkable": "^1.7.1",
+    "jquery": "^3.1.1"
   },
   "keywords": [],
   "author": "",
